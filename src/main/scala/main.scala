@@ -1,6 +1,6 @@
 import com.twitter.finagle.http._
 import com.twitter.finagle.{Http, Service}
-import com.twitter.util.Await
+import com.twitter.util.{Await, FuturePool}
 import doobie.util.transactor.DriverManagerTransactor
 import io.finch._
 import io.finch.circe._
@@ -14,25 +14,18 @@ import scalaz.concurrent.Task
   * Created by panagiotis on 11/04/17.
   */
 
-case class TodoList(id: Int, title: String)
-
 object Main extends App {
-  val xa = DriverManagerTransactor[Task](
-    "org.postgresql.Driver", "jdbc:postgresql:todosdb", "panagiotis", "mypass"
-  )
-
-  val a: ConnectionIO[List[String]] = sql"select title from todo_list".query[String].list
-  a.transact(xa).unsafePerformSync.foreach(println)
-
-  val hi: Endpoint[TodoList] = get("abc") {
-    Ok(TodoList(1, "Panagiotis"))
+  val getAll: Endpoint[List[TodoList]] = get("todos") {
+    FuturePool.unboundedPool {
+      Ok(TodoDB.findLists())
+    }
   }
 
   val bye: Endpoint[TodoList] = get("xyz") {
     Ok(TodoList(2, "Roubatsis"))
   }
 
-  val combined: Service[Request, Response] = (hi :+: bye).toService
+  val combined: Service[Request, Response] = (getAll :+: bye).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
