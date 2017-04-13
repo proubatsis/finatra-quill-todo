@@ -19,7 +19,7 @@ object Main extends App {
     }
   }
 
-  val getById: Endpoint[TodoList] = get("todos" :: int) { id: Int =>
+  val getById: Endpoint[TodoListItems] = get("todos" :: int) { id: Int =>
     Ok(TodoDB.findList(id))
   }
 

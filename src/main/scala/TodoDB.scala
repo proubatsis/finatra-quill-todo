@@ -16,8 +16,9 @@ object TodoDB {
       q.transact(connection).unsafePerformSync
   }
 
-  def findList(id: Int): TodoList = {
-    val q: ConnectionIO[TodoList] = sql"select id, title from todo_list where id=$id".query[TodoList].unique
-    q.transact(connection).unsafePerformSync
+  def findList(id: Int): TodoListItems = {
+    val tl: TodoList = sql"select id, title from todo_list where id=$id".query[TodoList].unique.transact(connection).unsafePerformSync
+    val items: List[TodoItem] = sql"select id, todo_list_id, title, completed from todo_item where todo_list_id=$id".query[TodoItem].list.transact(connection).unsafePerformSync
+    TodoListItems.combine(tl, items)
   }
 }
