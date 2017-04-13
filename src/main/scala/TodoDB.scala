@@ -11,6 +11,14 @@ object TodoDB {
     "org.postgresql.Driver", "jdbc:postgresql:todosdb", "panagiotis", "mypass"
   )
 
+  def updateToTodoList(u: Update0): TodoList = {
+    u.withUniqueGeneratedKeys[TodoList]("id", "title").transact(connection).unsafePerformSync
+  }
+
+  def updateToTodoItem(u: Update0): TodoItem = {
+    u.withUniqueGeneratedKeys[TodoItem]("id", "todo_list_id", "title", "completed").transact(connection).unsafePerformSync
+  }
+
   def findLists(): List[TodoList] = {
       val q: ConnectionIO[List[TodoList]] = sql"select id, title from todo_list".query[TodoList].list
       q.transact(connection).unsafePerformSync
@@ -56,5 +64,16 @@ object TodoDB {
 
   def deleteTodo(id: Int) = {
     deleteTodoItems(id) + deleteTodoList(id)
+  }
+
+  def updateTodoList(id: Int, todoList: TodoList): TodoList = {
+    val title = todoList.title
+    updateToTodoList(sql"update todo_list set title=$title where id=$id".update)
+  }
+
+  def updateTodoItem(listId: Int, id: Int, todoItem: TodoItem): TodoItem = {
+    val title = todoItem.title
+    val completed = todoItem.completed
+    updateToTodoItem(sql"update todo_item set title=$title, completed=$completed where id=$id and todo_list_id=$listId".update)
   }
 }

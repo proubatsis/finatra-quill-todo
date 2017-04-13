@@ -34,7 +34,15 @@ object Main extends App {
     Ok(TodoDB.deleteTodo(id))
   }
 
-  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo :+: deleteTodo).toService
+  val updateTodoList: Endpoint[TodoList] = put("todos" :: int :: jsonBody[TodoList]) { (id: Int, list: TodoList) =>
+    Ok(TodoDB.updateTodoList(id, list))
+  }
+
+  val updateTodoItem: Endpoint[TodoItem] = put("todos" :: int :: "items" :: int :: jsonBody[TodoItem]) { (listId: Int, itemId: Int, item: TodoItem) =>
+    Ok(TodoDB.updateTodoItem(listId, itemId, item))
+  }
+
+  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo :+: deleteTodo :+: updateTodoList :+: updateTodoItem).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
