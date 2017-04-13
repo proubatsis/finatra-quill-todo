@@ -43,4 +43,18 @@ object TodoDB {
 
     Some(TodoListItems(l.id, l.title, i))
   }
+
+  def deleteTodoList(id: Int) = {
+    val q: Update0 = sql"delete from todo_list where id=$id".update
+    q.run.transact(connection).unsafePerformSync
+  }
+
+  def deleteTodoItems(todoListId: Int): Int = {
+    val q: Update0 = sql"delete from todo_item where todo_list_id=$todoListId".update
+    q.run.transact(connection).unsafePerformSync
+  }
+
+  def deleteTodo(id: Int) = {
+    deleteTodoItems(id) + deleteTodoList(id)
+  }
 }

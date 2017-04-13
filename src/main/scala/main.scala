@@ -30,7 +30,11 @@ object Main extends App {
     }
   }
 
-  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo).toService
+  val deleteTodo: Endpoint[Int] = delete("todos" :: int) { id: Int =>
+    Ok(TodoDB.deleteTodo(id))
+  }
+
+  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo :+: deleteTodo).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
