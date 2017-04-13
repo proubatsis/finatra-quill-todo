@@ -42,7 +42,9 @@ object Main extends App {
     Ok(TodoDB.updateTodoItem(listId, itemId, item))
   }
 
-  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo :+: deleteTodo :+: updateTodoList :+: updateTodoItem).toService
+  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo :+: deleteTodo :+: updateTodoList :+: updateTodoItem).handle({
+    case e: Exception => NotFound(e)
+  }).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
