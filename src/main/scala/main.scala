@@ -23,7 +23,14 @@ object Main extends App {
     Ok(TodoDB.findList(id))
   }
 
-  val combined: Service[Request, Response] = (getAll :+: getById).toService
+  val createTodo: Endpoint[TodoListItems] = post("todos" :: jsonBody[TodoListItems]) { todo: TodoListItems =>
+    TodoDB.insertTodo(todo) match {
+      case Some(t) => Created(t)
+      case None => BadRequest(new Exception("invalid todo"))
+    }
+  }
+
+  val combined: Service[Request, Response] = (getAll :+: getById :+: createTodo).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
