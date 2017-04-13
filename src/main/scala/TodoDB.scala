@@ -15,4 +15,9 @@ object TodoDB {
       val q: ConnectionIO[List[TodoList]] = sql"select id, title from todo_list".query[TodoList].list
       q.transact(connection).unsafePerformSync
   }
+
+  def findList(id: Int): TodoList = {
+    val q: ConnectionIO[TodoList] = sql"select id, title from todo_list where id=$id".query[TodoList].unique
+    q.transact(connection).unsafePerformSync
+  }
 }

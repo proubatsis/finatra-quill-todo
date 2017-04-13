@@ -8,8 +8,6 @@ import io.circe.generic.auto._
 import doobie.imports._
 import doobie.util.query
 
-import scalaz.concurrent.Task
-
 /**
   * Created by panagiotis on 11/04/17.
   */
@@ -21,11 +19,11 @@ object Main extends App {
     }
   }
 
-  val bye: Endpoint[TodoList] = get("xyz") {
-    Ok(TodoList(2, "Roubatsis"))
+  val getById: Endpoint[TodoList] = get("todos" :: int) { id: Int =>
+    Ok(TodoDB.findList(id))
   }
 
-  val combined: Service[Request, Response] = (getAll :+: bye).toService
+  val combined: Service[Request, Response] = (getAll :+: getById).toService
 
   Await.ready(Http.server.serve(":8081", combined))
 }
